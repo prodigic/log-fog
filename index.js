@@ -1,7 +1,7 @@
 'use strict';
 
 //TODO: check repo folder does not exist/
-const REPO_NAME = 'fogger';
+const REPO_NAME = 'log-fog';
 const GITHUB_ID = 'prodigic';
 const DAY = 1000 * 60 * 60 * 24;
 
@@ -29,7 +29,7 @@ function commiterator(d, count) {
       if (currentDate.getDay() === 0) {
         currentDate = new Date(currentMillisecs - DAY);
       }
-      let gitDate = currentDate.toISOString().substr(0,10) + 'T12:00:00';
+      let gitDate = currentDate.toISOString()//.substr(0,10) + 'T12:00:00';
 
       currentMillisecs = currentMillisecs - (DAY * Math.random() * 3);
 
