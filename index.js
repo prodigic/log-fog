@@ -1,58 +1,61 @@
-'use strict';
 
 //TODO: check repo folder does not exist/
-const REPO_NAME = 'log-fog';
-const GITHUB_ID = 'prodigic';
+const REPO_NAME = "log-fog";
+const GITHUB_ID = "prodigic";
 const DAY = 1000 * 60 * 60 * 24;
 
-const exec = require('child_process').exec;
-const messages = require('./messages.js').messages;
+// const exec = require('child_process').exec;
+const { messages } = require("./messages.js");
 
 let command = [];
-let days = Array(15 + 1).join('0').split('');
+// let days = Array(15 + 1).join('0').split('');
 
-function commiterator(d, count) {
+function commiterator({ dateUntil, commitCount = 250, weeks = 1 }) {
   let nextIndex = 0;
-  let currentMillisecs = (d || Date.now());
-  let oldest = currentMillisecs - DAY;
+  let currentMillisecs = dateUntil || Date.now();
+  let cutOffDate = new Date().getTime() - weeks * 7 * 24 * 60 * 60 * 1000;
 
   return {
-
-    hasMore:   () => count > -1,
-
-    remaining: () => count - nextIndex,
+    hasMore: () => commitCount > -1 && cutOffDate < currentMillisecs,
+    remaining: () => cutOffDate < currentMillisecs ? commitCount - nextIndex : 0,
 
     next: function() {
-      count--;
+      const FINISHED = { done: true };
+      --commitCount;
       let currentDate = new Date(currentMillisecs);
 
       if (currentDate.getDay() === 0) {
         currentDate = new Date(currentMillisecs - DAY);
       }
-      let gitDate = currentDate.toISOString()//.substr(0,10) + 'T12:00:00';
+      let gitDate = currentDate.toISOString(); //.substr(0,10) + 'T12:00:00';
 
-      currentMillisecs = currentMillisecs - (DAY * Math.random() * 3);
+      currentMillisecs = currentMillisecs - DAY * Math.random();
 
-      return this.hasMore() ?
-        {value: gitDate, done: false} :
-        {done: true};
-
+      return this.hasMore() ? { value: gitDate, done: false } : FINISHED;
     }
   };
 }
 
-let commits = commiterator(Date.now(),150);
+let commits = commiterator({
+  dateUntil: Date.now(),
+  weeks: 7
+});
 
 command.push(`git clone git@github.com:${GITHUB_ID}/${REPO_NAME}.git`);
 command.push(`cd ${REPO_NAME}`);
 
+let cmd="";
 while (commits.remaining()) {
   let timestamp = commits.next().value;
-  let cmd = `GIT_AUTHOR_DATE=${timestamp} GIT_COMMITTER_DATE=${timestamp} git commit --allow-empty -m "${messages[messages.length * Math.random() | 0]}"`;
+  cmd = `GIT_AUTHOR_DATE=${timestamp} GIT_COMMITTER_DATE=${timestamp} git commit --allow-empty -m "${
+    messages[(messages.length * Math.random()) | 0]
+  }"`;
   command.push(cmd);
 }
 
-command.push('git pull');
-command.push('git push -u origin master');
+command.push("git pull");
+command.push("git push -u origin master");
 
-console.log(command.join('\n'));
+console.log(command.join("\n"));
+
+console.log(Array.from(commiterator({})));
