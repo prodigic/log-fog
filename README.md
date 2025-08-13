@@ -16,10 +16,6 @@ A git/github log obfuscation tool.
     ```bash
     cd log-fog
     ```
-3.  Install the dependencies (though there are none at the moment):
-    ```bash
-    npm install
-    ```
 
 ## Usage
 
